@@ -1,70 +1,92 @@
-# Getting Started with Create React App
+การใช้งาน React ร่วมกับ Redux เบื้องต้น
+----
+Step 1: Create react project
+--
+npx create-react-app react-redux-demo
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Step 2: ติดตั้ง dependencies ที่ต้องใช้สำหรับ redux
+---
+npm install redux react-redux redux-thunk
 
-## Available Scripts
+Step 3: สร้าง counterAction.js ใน redux/actions
+---
+// Action Types
+export const INCREMENT_COUNTER = 'INCREMENT_COUNTER'
+export const DECREMENT_COUNTER = 'DECREMENT_COUNTER'
 
-In the project directory, you can run:
+// Action Creator
+const incrementCounter = () => ({
+    type: INCREMENT_COUNTER,
+    // payload: {},
+    // data: []
+})
 
-### `npm start`
+const decrementCounter = () => ({
+    type: DECREMENT_COUNTER,
+    // payload: {},
+    // data: []
+})
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Step 4: สร้าง counterReducer.js ใน redux/reducers
+---
+import {INCREMENT_COUNTER, DECREMENT_COUNTER} from '../actions/counterActions';
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+const counterReducer = (state = {value: 0}, action) => {
+    switch (action.type){
+        case INCREMENT_COUNTER:
+            return {...state, value: state.value + 1 }
+        case DECREMENT_COUNTER:
+            return {...state, value: state.value - 1 }
+        default:
+            return {...state }
+    }
+}
 
-### `npm test`
+export default counterReducer
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Step 5: สร้างไฟล์ rootReducer.js ใน redux/reducers
+---
+import { combineReducers } from 'redux';
+import counterReducer from './counterReducer'
+import productReducer from './productReducer'
 
-### `npm run build`
+const rootReducer = combineReducers({
+    counter: counterReducer,
+    product: productReducer
+})
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+export default rootReducer
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+// {
+//     counter: { value: 0 }
+// }
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Step 6: สร้างไฟล์ store.js ใน redux/
+---
+/* eslint-disable no-mixed-operators */
+import {createStore, applyMiddleware, compose} from 'redux'
+import thunk from 'redux-thunk'
+import rootReducer from './reducers/rootReducer'
 
-### `npm run eject`
+const middleware = [thunk]
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+// กำหนดให้แสดง log ต่างๆ ผ่าน redux-devtool
+const composeEnhancers = typeof window != 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+export const store = createStore(rootReducer, composeEnhancers(applyMiddleware(...middleware)))
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Step 7: การแก้ไขไฟล์ index.js
+---
+import React from 'react'
+import ReactDOM from 'react-dom'
+import './index.css'
+import App from './components/App'
+import { Provider } from 'react-redux'
+import { store } from './redux/store'
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+)
